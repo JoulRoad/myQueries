@@ -1,0 +1,21 @@
+SELECT f, did_order, count(distinct session_id)
+from
+(
+select m.session_id, f, max(case when e.session_id is null then 0 else 1  end) as did_order  
+from
+
+ 
+(
+select session_id, max(case when origin_base = 'mobileapp' then 1 else 0 end) as origin_base_new, case when max(db_val_ruid) <> max(db_val) then '1' else '0' end as f  
+ from
+ events inner join possible_events on events.ev_name =possible_events.ev_name  and interactive='true'
+  where utm_campaign in ('5th-apr-mor-wmn-1-120','5th-apr-mor-eth-200-999','5th-apr-mor-eth-400-1999','5th-apr-mor-eth-300-1499','5th-apr-mor-wst-200-999','5th-apr-mor-wst-400-1999','5th-apr-mor-wst-300-1499','5th-apr-mor-mn-1-200-999','5th-apr-mor-mn-0-200-999','5th-apr-mor-mn-0-400-1999','5th-apr-mor-mn-0-300-1499') and  ts > 1491241542000  and ts < 1491396631000 and origin_base in ('mobileapp', 'mobileweb')
+   group by 1 having count(distinct db_val) = 1 and count(distinct origin_base) = 1 
+) m
+
+   left join events e on e.session_id  =  m.session_id and e.ev_name = 'vip'  and  e.ts > 1491241542000 and e.ts < 1491396631000
+where m.origin_base_new = 0
+ group by 1, 2
+
+)
+group by 1, 2;
